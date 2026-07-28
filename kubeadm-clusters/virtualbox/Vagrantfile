@@ -119,6 +119,9 @@ Vagrant.configure("2") do |config|
 
   # Provision Master Nodes
   config.vm.define "controlplane" do |node|
+    
+    # Resize the VM's primary disk to 100GB (requires vagrant-disksize plugin)
+    node.vm.disksize.size = '100GB'
     # Name shown in the GUI
     node.vm.provider "virtualbox" do |vb|
       vb.name = "controlplane"
@@ -142,6 +145,9 @@ Vagrant.configure("2") do |config|
   # Provision Worker Nodes
   (1..NUM_WORKER_NODES).each do |i|
     config.vm.define "node0#{i}" do |node|
+      # Resize the VM's primary disk to 100GB (requires vagrant-disksize plugin)
+      node.vm.disksize.size = '100GB'
+      # Name shown in the GUI
       node.vm.provider "virtualbox" do |vb|
         vb.name = "node0#{i}"
         vb.memory = 2048
