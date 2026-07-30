@@ -156,7 +156,10 @@ Vagrant.configure("2") do |config|
   config.vm.boot_timeout = 900
 
   # Global disksize for all VMs
+  # Primary OS disk for every VM
   config.disksize.size = "100GB"
+  
+  # Secondary data disk for every VM
   DATA_DISK_SIZE = "800GB"  # 800 GB (VBoxManage expects MB)
   
   # Disable automatic box update checking. If you disable this, then
@@ -167,29 +170,16 @@ Vagrant.configure("2") do |config|
   # Provision Master Nodes
   config.vm.define "controlplane" do |node|
     
-    # Resize the VM's primary disk to 100GB (requires vagrant-disksize plugin)
-    # node.vm.disksize.size = '100GB'
+    # Secondary persistent data disk
+    node.vm.disk :disk,
+      name: "controlplane-data",
+      size: DATA_DISK_SIZE
+
     # Name shown in the GUI
     node.vm.provider "virtualbox" do |vb|
       vb.name = "controlplane"
       vb.memory = 4096
       vb.cpus = 5
-
-      vb.customize [
-      "createmedium", "disk",
-      "--filename", "#{vb.name}-data.vdi",
-      "--size", DATA_DISK_SIZE,
-      "--format", "VDI"
-    ]
-
-    vb.customize [
-      "storageattach", :id,
-      "--storagectl", "SCSI",
-      "--port", 2,
-      "--device", 0,
-      "--type", "hdd",
-      "--medium", "#{vb.name}-data.vdi"
-    ]
     end
     node.vm.hostname = "controlplane"
     if BUILD_MODE == "BRIDGE"
@@ -208,37 +198,32 @@ Vagrant.configure("2") do |config|
   # Provision Worker Nodes
   (1..NUM_WORKER_NODES).each do |i|
     config.vm.define "node0#{i}" do |node|
-      # Resize the VM's primary disk to 100GB (requires vagrant-disksize plugin)
-      # node.vm.disksize.size = '100GB'
-      # Name shown in the GUI
+      node_name = "node0#{i}"
+
+      node.vm.hostname = node_name
+
+      # Secondary persistent data disk
+      node.vm.disk :disk,
+        name: "#{node_name}-data",
+        size: DATA_DISK_SIZE
+
       node.vm.provider "virtualbox" do |vb|
-        vb.name = "node0#{i}"
+        vb.name   = node_name
         vb.memory = 2048
-        vb.cpus = 5
-
-        vb.customize [
-        "createmedium", "disk",
-        "--filename", "#{vb.name}-data.vdi",
-        "--size", DATA_DISK_SIZE,
-        "--format", "VDI"
-      ]
-
-      vb.customize [
-        "storageattach", :id,
-        "--storagectl", "SCSI",
-        "--port", 2,
-        "--device", 0,
-        "--type", "hdd",
-        "--medium", "#{vb.name}-data.vdi"
-      ]
+        vb.cpus   = 5
       end
-      node.vm.hostname = "node0#{i}"
+
       if BUILD_MODE == "BRIDGE"
         node.vm.network :public_network, bridge: get_bridge_adapter()
       else
-        node.vm.network :private_network, ip: IP_NW + ".#{NODE_IP_START + i}"
-        node.vm.network "forwarded_port", guest: 22, host: "#{2720 + i}"
+        node.vm.network :private_network,
+          ip: IP_NW + ".#{NODE_IP_START + i}"
+
+        node.vm.network "forwarded_port",
+          guest: 22,
+          host: 2720 + i
       end
+
       provision_kubernetes_node node
     end
   end
