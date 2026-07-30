@@ -1,26 +1,44 @@
+# ---------------------------------------------------------
+# Destroy Protection
+# ---------------------------------------------------------
+if ARGV.include?("destroy")
+  unless ENV["ALLOW_DESTROY"] == "YES"
+    abort <<~MSG
 
-# Require explicit approval before allowing destroy
-if ARGV.include?("destroy") && ENV["ALLOW_DESTROY"] != "YES"
-  abort <<~MSG
+==============================================================
+KUBERNETES HOME LAB DESTROY PROTECTION
+==============================================================
 
-  ===============================================
-   Destroy Protection Enabled
-  ===============================================
+This operation will permanently destroy:
 
-  This cluster contains persistent data.
+  • Kubernetes Control Plane
+  • Worker Nodes
+  • Prometheus
+  • Grafana
+  • OpenEBS LocalPV volumes
+  • Databases
+  • All Persistent Volumes
+  • All Kubernetes resources
 
-  To destroy it, run:
+If you REALLY intend to destroy this lab:
 
-      ALLOW_DESTROY=YES vagrant destroy
+PowerShell:
+    $env:ALLOW_DESTROY="YES"
+    vagrant destroy
 
-  Or:
+Git Bash:
+    export ALLOW_DESTROY=YES
+    vagrant destroy
 
-      export ALLOW_DESTROY=YES
-      vagrant destroy
+==============================================================
 
-  ===============================================
+MSG
+  end
 
-  MSG
+  print "\nType 'DESTROY HOMELAB' to continue: "
+  answer = STDIN.gets.chomp
+
+  abort("\nDestroy cancelled.\n") unless answer == "DESTROY HOMELAB"
 end
 
 # -*- mode: ruby -*-
