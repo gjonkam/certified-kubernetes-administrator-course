@@ -172,7 +172,7 @@ Vagrant.configure("2") do |config|
     node.vm.provider "virtualbox" do |vb|
       vb.name = "controlplane"
       vb.memory = 4096
-      vb.cpus = 4
+      vb.cpus = 5
     end
     node.vm.hostname = "controlplane"
     if BUILD_MODE == "BRIDGE"
@@ -197,7 +197,7 @@ Vagrant.configure("2") do |config|
       node.vm.provider "virtualbox" do |vb|
         vb.name = "node0#{i}"
         vb.memory = 2048
-        vb.cpus = 4
+        vb.cpus = 5
       end
       node.vm.hostname = "node0#{i}"
       if BUILD_MODE == "BRIDGE"
