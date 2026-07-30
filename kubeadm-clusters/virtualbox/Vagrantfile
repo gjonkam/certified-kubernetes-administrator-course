@@ -1,3 +1,28 @@
+
+# Require explicit approval before allowing destroy
+if ARGV.include?("destroy") && ENV["ALLOW_DESTROY"] != "YES"
+  abort <<~MSG
+
+  ===============================================
+   Destroy Protection Enabled
+  ===============================================
+
+  This cluster contains persistent data.
+
+  To destroy it, run:
+
+      ALLOW_DESTROY=YES vagrant destroy
+
+  Or:
+
+      export ALLOW_DESTROY=YES
+      vagrant destroy
+
+  ===============================================
+
+  MSG
+end
+
 # -*- mode: ruby -*-
 # vi:set ft=ruby sw=2 ts=2 sts=2:
 
